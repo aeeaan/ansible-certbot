@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+#
+# An example to stop the MTA before updating certs would be
+# PRE_HOOK="--pre-hook 'systemctl stop postfix'"
+PRE_HOOK="{{ certbot_pre_hook }}"
+
+# An example to restart httpd would be:
+# POST_HOOK="--post-hook 'systemctl restart httpd'"
+POST_HOOK="{{ certbot_post_hook }}"
+
+# An example to run a script to alert each cert would be:
+# RENEW_HOOK="--renew-hook /usr/local/bin/cert-notifier.sh"
+RENEW_HOOK="{{ certbot_renew_hook }}"
+
+# An example to force renewal for certificates not due yet
+# CERTBOT_ARGS="--force-renewal"
+CERTBOT_ARGS="--http-01-port {{ certbot_port }} --http-01-address {{ certbot_address }} {{ certbot_args }}"

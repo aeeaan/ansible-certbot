@@ -1,0 +1,17 @@
+---
+certbot_address: 127.0.0.1
+certbot_port: 888
+certbot_dhparams: /etc/pki/tls/certs/dhparams.pem
+certbot_dhparams_size: 2048
+
+certbot_pre_hook: ''
+certbot_post_hook: ''
+certbot_renew_hook: ''
+certbot_args: '--deploy-hook="/usr/local/bin/certbot-create-bundle"'
+certbot_admin_email: email@example.com
+certbot_certs: []
+# - email: tester@test.com
+#   domains:
+#     - test.com
+#     - test2.com
+

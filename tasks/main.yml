@@ -1,0 +1,39 @@
+---
+- name: install certbot
+  package:
+    name: certbot
+    state: present
+
+- name: add certbot service settings
+  template:
+    src: sysconfig.j2
+    dest: /etc/sysconfig/certbot
+    owner: root
+    group: root
+    mode: 0664
+
+- name: generate DH params
+  openssl_dhparam:
+    path: "{{ certbot_dhparams }}"
+    size: "{{ certbot_dhparams_size }}"
+
+- name: install bundle hook
+  template:
+    src: certbot-create-bundle.j2
+    dest: /usr/local/bin/certbot-create-bundle
+    owner: root
+    group: root
+    mode: 0775
+
+- name: Generate new certificate if one doesn't exist.
+  command: certbot certonly --standalone --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} --http-01-port {{ certbot_port }} --http-01-address {{ certbot_address }} --deploy-hook="/usr/local/bin/certbot-create-bundle"
+  loop:
+    "{{ certbot_certs }}"
+  args:
+    creates: /etc/letsencrypt/live/{{ item.domains[0] | replace('*.', '') }}/cert.pem
+  
+- name: ensure certbot timer is enabled
+  service:
+    name: certbot-renew.timer
+    enabled: yes
+    state: started
