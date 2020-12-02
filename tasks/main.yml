@@ -20,18 +20,29 @@
 - name: install bundle hook
   template:
     src: certbot-create-bundle.j2
-    dest: /usr/local/bin/certbot-create-bundle
+    dest: /usr/local/bin/certbot-create-bundle.sh
     owner: root
     group: root
     mode: 0775
 
-- name: Generate new certificate if one doesn't exist.
-  command: certbot certonly --standalone --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} --http-01-port {{ certbot_port }} --http-01-address {{ certbot_address }} --deploy-hook="/usr/local/bin/certbot-create-bundle"
-  loop:
-    "{{ certbot_certs }}"
-  args:
-    creates: /etc/letsencrypt/live/{{ item.domains[0] | replace('*.', '') }}/cert.pem
-  
+- block:
+  - name: Generate new certificate if one doesn't exist.
+    command: certbot certonly --standalone --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} --http-01-port {{ certbot_port }} --http-01-address {{ certbot_address }} --allow-subset-of-names
+    loop:
+      "{{ certbot_certs }}"
+    args:
+      creates: /etc/letsencrypt/live/{{ item.domains[0] | replace('*.', '') }}/cert.pem
+    when: certbot_method == 'standalone'
+
+  - name: Generate new certificate if one doesn't exist.
+    command: certbot certonly --apache --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} " --allow-subset-of-names
+    loop:
+      "{{ certbot_certs }}"
+    args:
+      creates: /etc/letsencrypt/live/{{ item.domains[0] | replace('*.', '') }}/cert.pem
+    when: certbot_method == 'apache'
+  when: certbot_certs is defined and certbot_certs|length > 0
+
 - name: ensure certbot timer is enabled
   service:
     name: certbot-renew.timer
