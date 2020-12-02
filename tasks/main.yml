@@ -35,7 +35,7 @@
     when: certbot_method == 'standalone'
 
   - name: Generate new certificate if one doesn't exist.
-    command: certbot certonly --apache --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} " --allow-subset-of-names
+    command: certbot certonly --apache --noninteractive --agree-tos --email {{ item.email | default(certbot_admin_email) }} -d {{ item.domains | join(',') }} --allow-subset-of-names
     loop:
       "{{ certbot_certs }}"
     args:
